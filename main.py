@@ -1,5 +1,6 @@
 import csv
 from progress.bar import IncrementalBar
+import matplotlib.pyplot as plt
 
 rows_counter = 0  # Кол-во прочитанных строк из файла
 data = {}  # Сюда читаем данные из файла
@@ -43,5 +44,9 @@ for NumCanal in range(len(data)):
         Smax = max(average)
         Sm[NumCanal].append((Smax - Smin) / 2 * p)
         bar.next()
-    print("")
+    print("")   # Нужно чтобы следующий бар рисовался на новой строке
+    # Рисуем график по Sm [1, n/2]
+    plt.title(f"Канал {NumCanal+1}")
+    plt.plot(Sm[NumCanal])
+    plt.show()
 
