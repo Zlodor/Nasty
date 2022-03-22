@@ -1,6 +1,6 @@
 import csv
 
-import pylab as pl
+
 from progress.bar import IncrementalBar
 import matplotlib.pyplot as plt
 from threading import Thread
@@ -50,10 +50,6 @@ with open('01_gauss8_0grad.csv', 'r', newline='', encoding='utf-8') as csvfile:
 #         Sm[NumCanal].append((Smax - Smin) / 2 * p)
 #         bar.next()
 #     print("")   # Нужно чтобы следующий бар рисовался на новой строке
-#     # Рисуем график по Sm [1, n/2]
-#     plt.title(f"Канал {NumCanal+1}")
-#     plt.plot(Sm[NumCanal])
-#     plt.show()
 
 
 # Многопоточная обработка
@@ -88,22 +84,20 @@ for num in range(len(data)):
 for th in th_list:
     th.join()
 
-plt.subplot(2, 2, 1)
-plt.plot(Sm[0])
-plt.title("Канал №1")
-
-plt.subplot(2, 2, 2)
-plt.plot(Sm[1])
-plt.title("Канал №2")
-
-plt.subplot(2, 2, 3)
-plt.plot(Sm[2])
-plt.title("Канал №3")
-
-plt.subplot(2, 2, 4)
-plt.plot(Sm[3])
-plt.title("Канал №4")
-
+# Вычислим кол-во ячеек под графики взависимости от числа входных каналов
+n = 1
+m = 1
+while n * m < len(data):
+    n += 1
+    if n * m >= len(data):
+        break
+    else:
+        m += 1
+# Инициализируем графики
+for i in range(len(data)):
+    plt.subplot(n, m, i+1)
+    plt.plot(Sm[i])
+    plt.title(f"Канал №{i+1}")
 plt.show()
 
 
