@@ -50,7 +50,7 @@ with open('01_gauss8_0grad.csv', 'r', newline='', encoding='utf-8') as csvfile:
 #
 #         Smin = min(average)
 #         Smax = max(average)
-#         Sm[NumCanal].append((Smax - Smin) / 2 * p)
+#         Sm[NumCanal].append((Smax - Smin) / (2 * p))
 #         bar.next()
 #     print("")   # Нужно чтобы следующий бар рисовался на новой строке
 
@@ -76,7 +76,7 @@ with open('01_gauss8_0grad.csv', 'r', newline='', encoding='utf-8') as csvfile:
 #
 #         Smin = min(average)
 #         Smax = max(average)
-#         Sm[num_canal].append((Smax - Smin) / 2 * p)
+#         Sm[num_canal].append((Smax - Smin) / (2 * p))
 #
 #
 # # Запускаем потоки и ожидаем их завершения
@@ -122,7 +122,7 @@ def sm_calculate_process(canal_data: list, num_canal: int, lock_copy):
 
         Smin = min(average)
         Smax = max(average)
-        sm_local.append((Smax - Smin) / 2 * p)
+        sm_local.append((Smax - Smin) / (2 * p))
 
     lock_copy.acquire()
     Sm[num_canal] = sm_local
@@ -139,6 +139,19 @@ for pr in pr_list:
     pr.join()
 
 
+def save_results(name_output_file='output.csv'):
+    with open(name_output_file, 'w+', newline='', encoding='utf-8') as ouput_file:
+        print("Запись результатов в файл:")
+        writer = csv.writer(ouput_file, delimiter=',')
+        for i in tqdm(range(len(Sm[0]))):
+            line = []
+            for j in range(len(Sm)):
+                line.append(Sm[j][i])
+            writer.writerow(line)
+
+
+th = Thread(target=save_results, args=())
+th.start()
 # Вычислим кол-во ячеек под графики взависимости от числа входных каналов
 n = 1
 m = 1
@@ -154,3 +167,4 @@ for i in range(len(data)):
     plt.plot(Sm[i])
     plt.title(f"Канал №{i + 1}")
 plt.show()
+th.join()
