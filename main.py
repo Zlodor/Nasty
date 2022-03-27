@@ -1,30 +1,11 @@
 import csv
 
-from progress.bar import IncrementalBar
+# from progress.bar import IncrementalBar
 import matplotlib.pyplot as plt
 from threading import Thread
 from multiprocessing import Process, Lock, Manager
 from tqdm import tqdm
-import time
-
-rows_counter = 0  # Кол-во прочитанных строк из файла
-data = {}  # Сюда читаем данные из файла
-# Sm = {}  # Выходной словать, где ключ-№ канала, а значение-список из Sm для каждой m[1, n/2]
-Sm = Manager().dict()
-with open('01_gauss8_0grad.csv', 'r', newline='', encoding='utf-8') as csvfile:
-    reader = csv.reader(csvfile, delimiter=',')
-    tmp = next(reader)
-    num_canals = len(tmp)
-    for i in range(num_canals):
-        data[i] = [float(tmp[i])]
-        Sm[i] = []
-    print(f"Количество каналов - {num_canals}")
-    for row in reader:
-        for i in range(num_canals):
-            data[i].append(float(row[i]))
-    rows_counter = len(data[0])
-    print(f"Строк прочитано - {rows_counter}")
-
+# import time
 
 # Однопоточная обработка
 # for NumCanal in range(len(data)):
@@ -90,19 +71,19 @@ with open('01_gauss8_0grad.csv', 'r', newline='', encoding='utf-8') as csvfile:
 
 
 # Многопроцессовая обработка
-lock = Lock()
 
 
-def sm_calculate_process(canal_data: list, num_canal: int, lock_copy):
+def sm_calculate_process(canal_data: list, num_canal: int, lock_copy, sm):
     """
     Функцйия для вызова в многопроцессном режиме
+    :param sm: Выходной словарь
     :param lock_copy: копия объекта типа Lock, для синхронизации процессов.
     :param canal_data: информация с канала в сыром виде
     :param num_canal: номер канала (нумерация начинается с 0)
     :return: void
     """
-    global Sm
     sm_local = []
+    rows_counter = len(canal_data)
     for m in tqdm(range(1, int(rows_counter / 2) + 1)):
         p = int(rows_counter / m)
         matrix = []  # Будущая таблица с m-столбцов и p-строк
@@ -125,46 +106,67 @@ def sm_calculate_process(canal_data: list, num_canal: int, lock_copy):
         sm_local.append((Smax - Smin) / (2 * p))
 
     lock_copy.acquire()
-    Sm[num_canal] = sm_local
+    sm[num_canal] = sm_local
     lock_copy.release()
 
 
-# Запускаем процессы и ожидаем их завершения
-pr_list = []
-for num in range(len(data)):
-    pr = Process(target=sm_calculate_process, args=(data[num], num, lock, ))
-    pr_list.append(pr)
-    pr.start()
-for pr in pr_list:
-    pr.join()
-
-
-def save_results(name_output_file='output.csv'):
+def save_results(sm, name_output_file='output.csv'):
     with open(name_output_file, 'w+', newline='', encoding='utf-8') as ouput_file:
         print("Запись результатов в файл:")
         writer = csv.writer(ouput_file, delimiter=',')
-        for i in tqdm(range(len(Sm[0]))):
+        for i in tqdm(range(len(sm[0]))):
             line = []
-            for j in range(len(Sm)):
-                line.append(Sm[j][i])
+            for j in range(len(sm)):
+                line.append(sm[j][i])
             writer.writerow(line)
 
 
-th = Thread(target=save_results, args=())
-th.start()
-# Вычислим кол-во ячеек под графики взависимости от числа входных каналов
-n = 1
-m = 1
-while n * m < len(data):
-    n += 1
-    if n * m >= len(data):
-        break
-    else:
-        m += 1
-# Инициализируем графики
-for i in range(len(data)):
-    plt.subplot(n, m, i + 1)
-    plt.plot(Sm[i])
-    plt.title(f"Канал №{i + 1}")
-plt.show()
-th.join()
+if __name__ == '__main__':
+    lock = Lock()
+    rows_counter = 0  # Кол-во прочитанных строк из файла
+    data = {}  # Сюда читаем данные из файла
+    # Sm = {}  # Выходной словать, где ключ-№ канала, а значение-список из Sm для каждой m[1, n/2]
+    Sm = Manager().dict()
+    with open('01_gauss8_0grad.csv', 'r', newline='', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        tmp = next(reader)
+        num_canals = len(tmp)
+        for i in range(num_canals):
+            data[i] = [float(tmp[i])]
+            Sm[i] = []
+        print(f"Количество каналов - {num_canals}")
+        for row in reader:
+            for i in range(num_canals):
+                data[i].append(float(row[i]))
+        rows_counter = len(data[0])
+        print(f"Строк прочитано - {rows_counter}")
+
+    # Запускаем процессы и ожидаем их завершения
+    # start_time = time.time()
+    pr_list = []
+    for num in range(len(data)):
+        pr = Process(target=sm_calculate_process, args=(data[num], num, lock, Sm, ), daemon=True)
+        pr_list.append(pr)
+        pr.start()
+    for pr in pr_list:
+        pr.join()
+    # print(time.time() - start_time)
+
+    th = Thread(target=save_results, args=(Sm, ))
+    th.start()
+    # Вычислим кол-во ячеек под графики взависимости от числа входных каналов
+    n = 1
+    m = 1
+    while n * m < len(data):
+        n += 1
+        if n * m >= len(data):
+            break
+        else:
+            m += 1
+    # Инициализируем графики
+    for i in range(len(data)):
+        plt.subplot(n, m, i + 1)
+        plt.plot(Sm[i])
+        plt.title(f"Канал №{i + 1}")
+    plt.show()
+    th.join()
