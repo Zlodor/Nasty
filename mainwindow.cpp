@@ -3,10 +3,7 @@
 #include <QFileDialog>
 #include <QApplication>
 #include <QString>
-#include <QDebug>
-#include <QLineSeries>
-#include <QtCharts>
-#include <QChartView>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -14,35 +11,18 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // Построить ряд как источник данных диаграммы
-    QLineSeries *series = new QLineSeries();
-    series->append(0, 5);
-    series->append(4, 10);
-    series->append(8, 6);
-    *series << QPointF(13, 5) << QPointF(17, 6) << QPointF(20, 2);
+    this->raw_chart = new QChart();
+    this->processed_chart = new QChart();
 
-    QLineSeries *series2 = new QLineSeries();
-    series2->append(0, 5);
-    series2->append(4, 10);
-    series2->append(8, 6);
-//    *series2 << QPointF(13, 5) << QPointF(17, 6) << QPointF(20, 2);
+    this->raw_chart->legend()->hide();
+    this->raw_chart->setTitle("Raw data");
 
-    // Построить график
-    QChart *chart = new QChart();
-    chart->legend()->hide();  // скрыть легенду
-    chart->addSeries(series);  // добавить серию на график
-    chart->createDefaultAxes();  // Создать ось на основе серии, добавленной к диаграмме
-    chart->setTitle("Raw data");  // Устанавливаем заголовок графика
+    this->processed_chart->legend()->hide();
+    this->processed_chart->setTitle("Processed data");
 
-    QChart *chart2 = new QChart();
-    chart2->legend()->hide();  // скрыть легенду
-    chart2->addSeries(series2);  // добавить серию на график
-    chart2->createDefaultAxes();  // Создать ось на основе серии, добавленной к диаграмме
-    chart2->setTitle("Processed data");  // Устанавливаем заголовок графика
-
-    this->ui->ChartView->setChart(chart);
+    this->ui->ChartView->setChart(this->raw_chart);
     this->ui->ChartView->setRenderHint(QPainter::Antialiasing);
-    this->ui->ChartView_2->setChart(chart2);
+    this->ui->ChartView_2->setChart(this->processed_chart);
     this->ui->ChartView_2->setRenderHint(QPainter::Antialiasing);
 }
 
@@ -56,7 +36,6 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(0, "Open File", ".", "*.csv");
-    qDebug()<<fileName;
     try
     {
         this->file.setFileName(fileName);
@@ -64,7 +43,8 @@ void MainWindow::on_pushButton_clicked()
         this->input_list.clear();
         qDebug()<<"Чтение файла...";
         QList<QByteArray> tmp = file.readLine().split(',');
-        for(int i=0; i<tmp.length(); i++)
+        this->number_of_canals = tmp.length();
+        for(int i=0; i<number_of_canals; i++)
             this->input_list.append(QVector<double>{tmp[i].toDouble()});
         while(!file.atEnd())
         {
@@ -73,19 +53,64 @@ void MainWindow::on_pushButton_clicked()
             for(auto number = tmp.begin(); number!=tmp.end(); number++, list_point++)
                 list_point->append(number->toDouble());
         }
+
+        //Добавим номера каналов в комбобокс
+        this->ui->comboBox->clear();
+        for(int i=1; i<=this->number_of_canals; i++)
+            this->ui->comboBox->addItem(QString::number(i));
         qDebug()<<"Чтение файла завершено."<<"Прочитано:"<<this->input_list[0].length()<<"строк.";
     }
     catch (...)
     {
         this->statusBar()->showMessage("Ошибка при открытии файла", 4000);
     }
+
+    //Пока для теста сделаем подсчет и отрисовку графика здесь
+//    auto vec = this->process_data(this->input_list[0]);
+//    this->processed_series = new QLineSeries();
+//    for(int i=0; i<vec.length(); i++)
+//        this->processed_series->append(i, vec[i]);
+//    this->processed_chart->removeAllSeries();
+//    this->processed_chart->addSeries(this->processed_series);
+//    this->processed_chart->createDefaultAxes();
+//    this->ui->ChartView_2->repaint();
 }
 
 
-QVector<double> MainWindow::process_data(QVector<double> data)
+QVector<double> MainWindow::process_data(QVector<double> _data)
 {
     QVector<double> output;
+    QVector<double> average;
 
+    for(int m=1; m<=(_data.length()/2); m++)
+    {
+        average.clear();
+        int p = _data.length() / m;
+        double accumulator = 0.0;
+        for(int n=0; n<m; n++)
+        {
+            for(int i=0; i<p; i++)
+                accumulator+=_data[n+i*m];
+
+            average.append(accumulator / p);
+        }
+        double min = *std::min_element(average.begin(), average.end());
+        double max = *std::max_element(average.begin(), average.end());
+        output.append((max-min) / (2*p));
+    }
     return output;
+}
+
+
+void MainWindow::on_comboBox_currentIndexChanged(int index)
+{
+    QLineSeries *series = new QLineSeries();
+    QVector<double> vec = this->input_list[index];
+    for(int i=0; i<vec.length(); i++)
+        series->append(i, vec[i]);
+    this->raw_chart->removeAllSeries();
+    this->raw_chart->addSeries(series);
+    this->raw_chart->createDefaultAxes();
+    this->ui->ChartView->repaint();
 }
 
