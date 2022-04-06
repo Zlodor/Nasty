@@ -22,8 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->ui->ChartView->setChart(this->raw_chart);
     this->ui->ChartView->setRenderHint(QPainter::Antialiasing);
+    this->ui->ChartView->setRubberBand(QChartView::HorizontalRubberBand);
     this->ui->ChartView_2->setChart(this->processed_chart);
     this->ui->ChartView_2->setRenderHint(QPainter::Antialiasing);
+    this->ui->ChartView_2->setRubberBand(QChartView::HorizontalRubberBand);
 
     this->ui->comboBox->setEnabled(false);
     this->ui->spinBox->setEnabled(false);
