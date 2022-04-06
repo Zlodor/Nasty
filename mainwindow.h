@@ -27,14 +27,18 @@ private slots:
 
     void on_comboBox_currentIndexChanged(int index);
 
+    void on_pushButton_2_clicked();
+
 private:
     Ui::MainWindow *ui;
 
     int number_of_canals = 0;
+    int number_of_samples = 0;
 
     QFile file;
     QList<QVector<double>> input_list;
-    QList<QVector<double>> output_list;
+//    QList<QVector<double>> output_list;
+    QVector<double> output;
 
     QList<QLineSeries*> list_of_input_series;
     QLineSeries *raw_series, *processed_series;

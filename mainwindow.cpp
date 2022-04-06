@@ -24,6 +24,11 @@ MainWindow::MainWindow(QWidget *parent)
     this->ui->ChartView->setRenderHint(QPainter::Antialiasing);
     this->ui->ChartView_2->setChart(this->processed_chart);
     this->ui->ChartView_2->setRenderHint(QPainter::Antialiasing);
+
+    this->ui->comboBox->setEnabled(false);
+    this->ui->spinBox->setEnabled(false);
+    this->ui->spinBox_2->setEnabled(false);
+    this->ui->pushButton_2->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -54,15 +59,28 @@ void MainWindow::on_pushButton_clicked()
                 list_point->append(number->toDouble());
         }
 
+        this->number_of_samples = this->input_list[0].length();
+
         //Добавим номера каналов в комбобокс
         this->ui->comboBox->clear();
         for(int i=1; i<=this->number_of_canals; i++)
             this->ui->comboBox->addItem(QString::number(i));
-        qDebug()<<"Чтение файла завершено."<<"Прочитано:"<<this->input_list[0].length()<<"строк.";
+
+        this->ui->spinBox->setMaximum(number_of_samples);
+        this->ui->spinBox_2->setMaximum(number_of_samples);
+        this->ui->comboBox->setEnabled(true);
+        this->ui->spinBox->setEnabled(true);
+        this->ui->spinBox_2->setEnabled(true);
+        this->ui->pushButton_2->setEnabled(true);
+        qDebug()<<"Чтение файла завершено."<<"Прочитано:"<<this->number_of_samples<<"строк.";
     }
     catch (...)
     {
         this->statusBar()->showMessage("Ошибка при открытии файла", 4000);
+        this->ui->comboBox->setEnabled(false);
+        this->ui->spinBox->setEnabled(false);
+        this->ui->spinBox_2->setEnabled(false);
+        this->ui->pushButton_2->setEnabled(false);
     }
 
     //Пока для теста сделаем подсчет и отрисовку графика здесь
@@ -111,6 +129,35 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
     this->raw_chart->removeAllSeries();
     this->raw_chart->addSeries(series);
     this->raw_chart->createDefaultAxes();
+    this->raw_chart->axes(Qt::Horizontal).back()->setRange(0, number_of_samples);
     this->ui->ChartView->repaint();
+}
+
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    int from = this->ui->spinBox->value();
+    int to = this->ui->spinBox_2->value();
+    if(from >= to)
+    {
+        this->statusBar()->showMessage("Неверный промежуток", 3000);
+        return;
+    }
+
+    QVector<double> tmp;
+    int num_canal = this->ui->comboBox->currentIndex();
+    for(int i=from; i<=to; i++)
+        tmp.append(this->input_list[num_canal][i]);
+
+    this->output.clear();
+    this->output = this->process_data(tmp);
+
+    this->processed_series = new QLineSeries();
+    for(int i=0; i<this->output.length(); i++)
+        this->processed_series->append(i, this->output[i]);
+    this->processed_chart->removeAllSeries();
+    this->processed_chart->addSeries(this->processed_series);
+    this->processed_chart->createDefaultAxes();
+    this->ui->ChartView_2->repaint();
 }
 
