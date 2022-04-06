@@ -47,16 +47,22 @@ void MainWindow::on_pushButton_clicked()
         this->file.open(QIODevice::ReadOnly | QIODevice::Text);
         this->input_list.clear();
         qDebug()<<"Чтение файла...";
-        QList<QByteArray> tmp = file.readLine().split(',');
+        QList<QString> tmp = QString(file.readLine()).split(',');
         this->number_of_canals = tmp.length();
+
         for(int i=0; i<number_of_canals; i++)
-            this->input_list.append(QVector<double>{tmp[i].toDouble()});
+            if(tmp[i]!='\n')
+                this->input_list.append(QVector<double>{tmp[i].toDouble()});
+            else
+                this->number_of_canals--;
+
         while(!file.atEnd())
         {
-            tmp = file.readLine().split(',');
+            tmp = QString(file.readLine()).split(',');
             auto list_point = this->input_list.begin();
             for(auto number = tmp.begin(); number!=tmp.end(); number++, list_point++)
-                list_point->append(number->toDouble());
+                if(*number != '\n')
+                    list_point->append(number->toDouble());
         }
 
         this->number_of_samples = this->input_list[0].length();
@@ -82,16 +88,6 @@ void MainWindow::on_pushButton_clicked()
         this->ui->spinBox_2->setEnabled(false);
         this->ui->pushButton_2->setEnabled(false);
     }
-
-    //Пока для теста сделаем подсчет и отрисовку графика здесь
-//    auto vec = this->process_data(this->input_list[0]);
-//    this->processed_series = new QLineSeries();
-//    for(int i=0; i<vec.length(); i++)
-//        this->processed_series->append(i, vec[i]);
-//    this->processed_chart->removeAllSeries();
-//    this->processed_chart->addSeries(this->processed_series);
-//    this->processed_chart->createDefaultAxes();
-//    this->ui->ChartView_2->repaint();
 }
 
 
@@ -122,6 +118,8 @@ QVector<double> MainWindow::process_data(QVector<double> _data)
 
 void MainWindow::on_comboBox_currentIndexChanged(int index)
 {
+    if(index == -1) return; //Это нужно т.к. при отчистке комбобокса его индекс устанавливается в -1, и этот слот срабатывает!!
+
     QLineSeries *series = new QLineSeries();
     QVector<double> vec = this->input_list[index];
     for(int i=0; i<vec.length(); i++)
@@ -158,6 +156,34 @@ void MainWindow::on_pushButton_2_clicked()
     this->processed_chart->removeAllSeries();
     this->processed_chart->addSeries(this->processed_series);
     this->processed_chart->createDefaultAxes();
+    this->processed_chart->axes(Qt::Horizontal).back()->setRange(0, this->output.length());
     this->ui->ChartView_2->repaint();
+}
+
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    if(this->output.isEmpty())
+    {
+        this->statusBar()->showMessage("Сохранить нечего:(", 3000);
+        return;
+    }
+
+    QString fileName = QFileDialog::getSaveFileName(this, "Save File", ".", "*.csv");
+    QFile out(fileName + ".csv");
+
+    try
+    {
+        out.open(QIODevice::WriteOnly);
+        QTextStream stream(&out);
+        for(auto num : this->output)
+            stream<<QString::number(num)+','<<endl;
+        out.close();
+        qDebug()<<"Файл сохранён";
+    }
+    catch (...)
+    {
+        this->statusBar()->showMessage("Ошибка при сохранении файла", 4000);
+    }
 }
 

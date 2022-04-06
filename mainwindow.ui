@@ -151,13 +151,37 @@
         </property>
        </spacer>
       </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_3">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Сохранить</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
-     <widget class="QChartView" name="ChartView"/>
+     <widget class="QChartView" name="ChartView">
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+       </font>
+      </property>
+     </widget>
     </item>
     <item>
-     <widget class="QChartView" name="ChartView_2"/>
+     <widget class="QChartView" name="ChartView_2">
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+       </font>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -171,7 +195,13 @@
     </rect>
    </property>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+    </font>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>
