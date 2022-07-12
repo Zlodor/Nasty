@@ -25,6 +25,8 @@ private slots:
 
     QVector<double> process_data(QVector<double> _data);
 
+    QVector<double> period(QVector<double> _data);
+
     void on_comboBox_currentIndexChanged(int index);
 
     void on_pushButton_2_clicked();
@@ -41,6 +43,7 @@ private:
     QList<QVector<double>> input_list;
 //    QList<QVector<double>> output_list;
     QVector<double> output;
+    QVector<double> gramma;
 
     QList<QLineSeries*> list_of_input_series;
     QLineSeries *raw_series, *processed_series;

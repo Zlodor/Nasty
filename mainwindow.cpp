@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <QApplication>
 #include <QString>
+#include <cmath>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -63,8 +64,9 @@ void MainWindow::on_pushButton_clicked()
             tmp = QString(file.readLine()).split(',');
             auto list_point = this->input_list.begin();
             for(auto number = tmp.begin(); number!=tmp.end(); number++, list_point++)
-                if(*number != '\n')
+                if(*number != '\n'){
                     list_point->append(number->toDouble());
+                }
         }
 
         this->number_of_samples = this->input_list[0].length();
@@ -117,6 +119,40 @@ QVector<double> MainWindow::process_data(QVector<double> _data)
     return output;
 }
 
+QVector<double> MainWindow::period(QVector<double> _data)
+{
+    QVector<double> a, b;
+    b.append(0.0);
+    auto Mean = [](QVector<double> _inf)
+    {
+        double mean=0.0;
+        for(auto &izm: _inf) mean+=izm;
+        return mean/_inf.length();
+    };
+    a.append(Mean(_data));
+
+    const int N = _data.length() / 2;
+    const int len = _data.length();
+    const double PI = 3.1415;
+    for(int i = 1; i < N+1; i++)
+    {
+        double p = 0, q = 0;
+        for(int j = 1; j < N; j++)
+        {
+            p += _data[j-1] * cos(2 * PI * i * j / N);
+            q += _data[j-1] * sin(2 * PI * i * j / N);
+        }
+        a.append(2.0 / N * p);
+        b.append(2.0 / N * q);
+    }
+
+    QVector<double> gramma;
+    for(int i=0; i<a.length(); i++)
+        gramma.append((pow(a[i],2) + pow(b[i],2)) * len / 2);
+
+    return gramma;
+}
+
 
 void MainWindow::on_comboBox_currentIndexChanged(int index)
 {
@@ -146,17 +182,25 @@ void MainWindow::on_pushButton_2_clicked()
 
     QVector<double> tmp;
     int num_canal = this->ui->comboBox->currentIndex();
-    for(int i=from; i<=to; i++)
+    for(int i=from; i<to; i++)
         tmp.append(this->input_list[num_canal][i]);
 
     this->output.clear();
     this->output = this->process_data(tmp);
+
+    this->gramma = this->period(tmp);
+    QLineSeries *gramma_series = new QLineSeries();
+    for(int i=0; i<gramma.length(); i++)
+        gramma_series->append(i, gramma[i]);
 
     this->processed_series = new QLineSeries();
     for(int i=0; i<this->output.length(); i++)
         this->processed_series->append(i, this->output[i]);
     this->processed_chart->removeAllSeries();
     this->processed_chart->addSeries(this->processed_series);
+
+    this->processed_chart->addSeries(gramma_series);
+
     this->processed_chart->createDefaultAxes();
     this->processed_chart->axes(Qt::Horizontal).back()->setRange(0, this->output.length());
     this->ui->ChartView_2->repaint();
@@ -178,8 +222,10 @@ void MainWindow::on_pushButton_3_clicked()
     {
         out.open(QIODevice::WriteOnly);
         QTextStream stream(&out);
-        for(auto num : this->output)
-            stream<<QString::number(num)+','<<endl;
+//        for(auto num : this->output)
+//            stream<<QString::number(num)+','<<endl;
+        for(int i=0; i<this->output.length(); i++)
+            stream<<QString::number(output[i])+ ","+ QString::number(gramma[i])<<endl;
         out.close();
         qDebug()<<"Файл сохранён";
     }
@@ -188,4 +234,6 @@ void MainWindow::on_pushButton_3_clicked()
         this->statusBar()->showMessage("Ошибка при сохранении файла", 4000);
     }
 }
+
+
 
