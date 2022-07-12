@@ -134,7 +134,7 @@ QVector<double> MainWindow::period(QVector<double> _data)
     const int N = _data.length() / 2;
     const int len = _data.length();
     const double PI = 3.1415;
-    for(int i = 1; i < N+1; i++)
+    for(int i = 1; i < N; i++)
     {
         double p = 0, q = 0;
         for(int j = 1; j < N; j++)
@@ -148,7 +148,7 @@ QVector<double> MainWindow::period(QVector<double> _data)
 
     QVector<double> gramma;
     for(int i=0; i<a.length(); i++)
-        gramma.append((pow(a[i],2) + pow(b[i],2)) * len / 2);
+        gramma.append((pow(a[i],2) + pow(b[i],2)) * N / 2);
 
     return gramma;
 }
@@ -190,17 +190,15 @@ void MainWindow::on_pushButton_2_clicked()
 
     this->gramma = this->period(tmp);
     QLineSeries *gramma_series = new QLineSeries();
-    for(int i=0; i<gramma.length(); i++)
+    QLineSeries *processed_series = new QLineSeries();
+
+    for(int i=0; i<this->output.length(); i++){
+        processed_series->append(i, this->output[i]);
         gramma_series->append(i, gramma[i]);
-
-    this->processed_series = new QLineSeries();
-    for(int i=0; i<this->output.length(); i++)
-        this->processed_series->append(i, this->output[i]);
+    }
     this->processed_chart->removeAllSeries();
-    this->processed_chart->addSeries(this->processed_series);
-
+    this->processed_chart->addSeries(processed_series);
     this->processed_chart->addSeries(gramma_series);
-
     this->processed_chart->createDefaultAxes();
     this->processed_chart->axes(Qt::Horizontal).back()->setRange(0, this->output.length());
     this->ui->ChartView_2->repaint();
@@ -222,9 +220,9 @@ void MainWindow::on_pushButton_3_clicked()
     {
         out.open(QIODevice::WriteOnly);
         QTextStream stream(&out);
-//        for(auto num : this->output)
-//            stream<<QString::number(num)+','<<endl;
-        for(int i=0; i<this->output.length(); i++)
+        //Чет мне кажется, что в грамм может быть на 1 значение больше. Перестрахуемся.
+        int len = output.length() > gramma.length() ? gramma.length() : output.length();
+        for(int i=0; i<len; i++)
             stream<<QString::number(output[i])+ ","+ QString::number(gramma[i])<<endl;
         out.close();
         qDebug()<<"Файл сохранён";

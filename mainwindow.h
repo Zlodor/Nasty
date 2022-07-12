@@ -46,7 +46,7 @@ private:
     QVector<double> gramma;
 
     QList<QLineSeries*> list_of_input_series;
-    QLineSeries *raw_series, *processed_series;
+    QLineSeries *raw_series;
     QChart *raw_chart, *processed_chart;
 };
 #endif // MAINWINDOW_H
