@@ -36,6 +36,9 @@ MainWindow::MainWindow(QWidget *parent)
     //Добавляем последовательности для каждого алгоритма обработки
     this->processed_series.append(new QLineSeries());
     this->processed_series.append(new QLineSeries());
+    this->processed_chart->addSeries((*processed_series.begin()));
+    this->processed_chart->addSeries((*(processed_series.begin()+1)));
+    this->processed_chart->createDefaultAxes();
 
 }
 
@@ -137,7 +140,7 @@ QVector<double> MainWindow::period(QVector<double> _data)
     a.append(Mean(_data));
 
     const int N = _data.length() / 2;
-    const int len = _data.length();
+//    const int len = _data.length();
     const double PI = 3.1415;
     for(int i = 1; i < N; i++)
     {
@@ -211,12 +214,9 @@ void MainWindow::on_pushButton_2_clicked()
         (*first_alg)->append(i, this->output[i]);
         (*secend_alg)->append(i, gramma[i]);
     }
-    this->processed_chart->removeAllSeries();
-    this->processed_chart->addSeries((*first_alg));
-    this->processed_chart->addSeries((*secend_alg));
-    this->processed_chart->createDefaultAxes();
     this->processed_chart->axes(Qt::Horizontal).back()->setRange(0, this->output.length());
     this->ui->ChartView_2->repaint();
+    this->on_checkBox_2_clicked();  //Для перерисовки оси Y
 }
 
 
