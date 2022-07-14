@@ -33,6 +33,27 @@ private slots:
 
     void on_pushButton_3_clicked();
 
+
+    void on_checkBox_clicked();
+
+    void on_checkBox_2_clicked();
+
+    void on_action2_triggered();
+
+    void on_action3_triggered();
+
+    void on_action4_triggered();
+
+    void on_action5_triggered();
+
+    void on_action6_triggered();
+
+    void on_action7_triggered();
+
+    void on_action8_triggered();
+
+    void on_action1_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -44,8 +65,11 @@ private:
 //    QList<QVector<double>> output_list;
     QVector<double> output;
     QVector<double> gramma;
+    QVector<double> minses;
+    QVector<double> maxses;
 
     QList<QLineSeries*> list_of_input_series;
+    QList<QLineSeries*> processed_series;
     QLineSeries *raw_series;
     QChart *raw_chart, *processed_chart;
 };

@@ -175,6 +175,55 @@
      </widget>
     </item>
     <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="checkBox">
+        <property name="font">
+         <font>
+          <family>Ubuntu</family>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>NoName</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBox_2">
+        <property name="font">
+         <font>
+          <family>Ubuntu</family>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Периодограмма</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
      <widget class="QChartView" name="ChartView_2">
       <property name="font">
        <font>
@@ -194,6 +243,27 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Настройки</string>
+    </property>
+    <widget class="QMenu" name="menu_2">
+     <property name="title">
+      <string>Стиль</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="action2"/>
+     <addaction name="action3"/>
+     <addaction name="action4"/>
+     <addaction name="action5"/>
+     <addaction name="action6"/>
+     <addaction name="action7"/>
+     <addaction name="action8"/>
+     <addaction name="action1"/>
+    </widget>
+    <addaction name="menu_2"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="font">
@@ -202,6 +272,46 @@
     </font>
    </property>
   </widget>
+  <action name="action2">
+   <property name="text">
+    <string>Light</string>
+   </property>
+  </action>
+  <action name="action3">
+   <property name="text">
+    <string>BlueCerulean</string>
+   </property>
+  </action>
+  <action name="action4">
+   <property name="text">
+    <string>Dark</string>
+   </property>
+  </action>
+  <action name="action5">
+   <property name="text">
+    <string>BrownSand</string>
+   </property>
+  </action>
+  <action name="action6">
+   <property name="text">
+    <string>BlueNcs</string>
+   </property>
+  </action>
+  <action name="action7">
+   <property name="text">
+    <string>HighContrast</string>
+   </property>
+  </action>
+  <action name="action8">
+   <property name="text">
+    <string>BlueIcy</string>
+   </property>
+  </action>
+  <action name="action1">
+   <property name="text">
+    <string>Qt</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

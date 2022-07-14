@@ -32,6 +32,11 @@ MainWindow::MainWindow(QWidget *parent)
     this->ui->spinBox->setEnabled(false);
     this->ui->spinBox_2->setEnabled(false);
     this->ui->pushButton_2->setEnabled(false);
+
+    //Добавляем последовательности для каждого алгоритма обработки
+    this->processed_series.append(new QLineSeries());
+    this->processed_series.append(new QLineSeries());
+
 }
 
 MainWindow::~MainWindow()
@@ -187,18 +192,28 @@ void MainWindow::on_pushButton_2_clicked()
 
     this->output.clear();
     this->output = this->process_data(tmp);
-
     this->gramma = this->period(tmp);
-    QLineSeries *gramma_series = new QLineSeries();
-    QLineSeries *processed_series = new QLineSeries();
+
+    //Запомним минимумы и максимумы
+    this->minses.clear();
+    this->maxses.clear();
+    this->minses.append(*std::min_element(output.begin(), output.end()));
+    this->minses.append(*std::min_element(gramma.begin(), gramma.end()));
+    this->maxses.append(*std::max_element(output.begin(), output.end()));
+    this->maxses.append(*std::max_element(gramma.begin(), gramma.end()));
+
+    auto first_alg = this->processed_series.begin();
+    auto secend_alg = this->processed_series.begin()+1;
+    (*first_alg)->clear();
+    (*secend_alg)->clear();
 
     for(int i=0; i<this->output.length(); i++){
-        processed_series->append(i, this->output[i]);
-        gramma_series->append(i, gramma[i]);
+        (*first_alg)->append(i, this->output[i]);
+        (*secend_alg)->append(i, gramma[i]);
     }
     this->processed_chart->removeAllSeries();
-    this->processed_chart->addSeries(processed_series);
-    this->processed_chart->addSeries(gramma_series);
+    this->processed_chart->addSeries((*first_alg));
+    this->processed_chart->addSeries((*secend_alg));
     this->processed_chart->createDefaultAxes();
     this->processed_chart->axes(Qt::Horizontal).back()->setRange(0, this->output.length());
     this->ui->ChartView_2->repaint();
@@ -234,4 +249,112 @@ void MainWindow::on_pushButton_3_clicked()
 }
 
 
+void MainWindow::on_checkBox_clicked()
+{
+    double min=0, max=0;
+    if(this->ui->checkBox->isChecked())
+    {
+        (*this->processed_series.begin())->setVisible(true);
+        if(this->ui->checkBox_2->isChecked())
+        {
+            min = this->minses[0] > this->minses[1] ? minses[1] : minses[0];
+            max = this->maxses[0] > this->maxses[1] ? maxses[0] : maxses[1];
+        }
+        else
+        {
+            min = this->minses[0];
+            max = this->maxses[0];
+        }
+    }
+    else
+    {
+        (*this->processed_series.begin())->setVisible(false);
+        min = this->minses[1];
+        max = this->maxses[1];
+    }
+    this->processed_chart->axes(Qt::Vertical).back()->setRange(min, max);
+}
+
+
+void MainWindow::on_checkBox_2_clicked()
+{
+    double min=0, max=0;
+    if(this->ui->checkBox_2->isChecked())
+    {
+        (*(this->processed_series.begin()+1))->setVisible(true);
+        if(this->ui->checkBox->isChecked())
+        {
+            min = this->minses[0] > this->minses[1] ? minses[1] : minses[0];
+            max = this->maxses[0] > this->maxses[1] ? maxses[0] : maxses[1];
+        }
+        else
+        {
+            min = this->minses[1];
+            max = this->maxses[1];
+        }
+    }
+    else
+    {
+        (*(this->processed_series.begin()+1))->setVisible(false);
+        min = this->minses[0];
+        max = this->maxses[0];
+    }
+    this->processed_chart->axes(Qt::Vertical).back()->setRange(min, max);
+}
+
+
+void MainWindow::on_action2_triggered()
+{
+    this->raw_chart->setTheme(QChart::ChartThemeLight);
+    this->processed_chart->setTheme(QChart::ChartThemeLight);
+}
+
+
+void MainWindow::on_action3_triggered()
+{
+    this->raw_chart->setTheme(QChart::ChartThemeBlueCerulean);
+    this->processed_chart->setTheme(QChart::ChartThemeBlueCerulean);
+}
+
+
+void MainWindow::on_action4_triggered()
+{
+    this->raw_chart->setTheme(QChart::ChartThemeDark);
+    this->processed_chart->setTheme(QChart::ChartThemeDark);
+}
+
+
+void MainWindow::on_action5_triggered()
+{
+    this->raw_chart->setTheme(QChart::ChartThemeBrownSand);
+    this->processed_chart->setTheme(QChart::ChartThemeBrownSand);
+}
+
+
+void MainWindow::on_action6_triggered()
+{
+    this->raw_chart->setTheme(QChart::ChartThemeBlueNcs);
+    this->processed_chart->setTheme(QChart::ChartThemeBlueNcs);
+}
+
+
+void MainWindow::on_action7_triggered()
+{
+    this->raw_chart->setTheme(QChart::ChartThemeHighContrast);
+    this->processed_chart->setTheme(QChart::ChartThemeHighContrast);
+}
+
+
+void MainWindow::on_action8_triggered()
+{
+    this->raw_chart->setTheme(QChart::ChartThemeBlueIcy);
+    this->processed_chart->setTheme(QChart::ChartThemeBlueIcy);
+}
+
+
+void MainWindow::on_action1_triggered()
+{
+    this->raw_chart->setTheme(QChart::ChartThemeQt);
+    this->processed_chart->setTheme(QChart::ChartThemeQt);
+}
 
