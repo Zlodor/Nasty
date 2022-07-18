@@ -186,9 +186,6 @@ QVector<double> MainWindow::period(QVector<double> _data)
         b.append(2.0 / N * q);
     }
 
-    //Чтобы выравнять 2 графика, а то здесь на 1 точку меньше
-    a.prepend(0);
-    b.prepend(0);
 
     for(int i=0; i<a.length(); i++)
         gramma.append(pow(a[i],2) + pow(b[i],2));
@@ -244,10 +241,10 @@ void MainWindow::on_pushButton_2_clicked()
     (*first_alg)->clear();
     (*secend_alg)->clear();
 
-    for(int i=0; i<this->output.length(); i++){
+    for(int i=0; i<this->output.length(); i++)
         (*first_alg)->append(i, this->output[i]);
+    for(int i=0; i<this->gramma.length(); i++)
         (*secend_alg)->append(i, gramma[i]);
-    }
     this->processed_chart->axes(Qt::Horizontal).back()->setRange(0, this->output.length());
     this->ui->ChartView_2->repaint();
     this->on_checkBox_2_clicked();  //Для перерисовки оси Y
