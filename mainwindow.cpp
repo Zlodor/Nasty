@@ -119,6 +119,7 @@ QVector<double> MainWindow::process_data(QVector<double> _data)
                 accumulator+=_data[n+i*m];
 
             average.append(accumulator / p);
+            accumulator = 0;
         }
         double min = *std::min_element(average.begin(), average.end());
         double max = *std::max_element(average.begin(), average.end());
@@ -127,40 +128,73 @@ QVector<double> MainWindow::process_data(QVector<double> _data)
     return output;
 }
 
+//QVector<double> MainWindow::period(QVector<double> _data)
+//{
+//    QVector<double> a, b;
+
+//    auto Mean = [](QVector<double> _inf)
+//    {
+//        double mean=0.0;
+//        for(auto &izm: _inf) mean+=izm;
+//        return mean/_inf.length();
+//    };
+//    a.append(Mean(_data));
+//    b.append(0.0);
+
+//    const int N = _data.length() / 2;
+//    const double PI = 3.1415;
+//    for(int i = 1; i <= N; i++)
+//    {
+//        double p = 0, q = 0;
+//        for(int j = 1; j <= N; j++)
+//        {
+//            p += _data[j-1] * cos(2 * PI * i * j / N);
+//            q += _data[j-1] * sin(2 * PI * i * j / N);
+//        }
+//        a.append(2.0 / N * p);
+//        b.append(2.0 / N * q);
+//    }
+
+//    QVector<double> gramma;
+//    for(int i=0; i<a.length(); i++)
+//        gramma.append((pow(a[i],2) + pow(b[i],2)) * N / 2);
+
+//    return gramma;
+//}
+
+
 QVector<double> MainWindow::period(QVector<double> _data)
 {
     QVector<double> a, b;
-    b.append(0.0);
-    auto Mean = [](QVector<double> _inf)
-    {
-        double mean=0.0;
-        for(auto &izm: _inf) mean+=izm;
-        return mean/_inf.length();
-    };
-    a.append(Mean(_data));
+    QVector<double> gramma;
 
-    const int N = _data.length() / 2;
-//    const int len = _data.length();
+    int N = _data.length();
+    if((N % 2) == 1) N--;
+    int n = N / 2;
+
     const double PI = 3.1415;
-    for(int i = 1; i < N; i++)
+    for(int k = 1; k <= n-1; k++)
     {
+        double fk = static_cast<double>(k) / N;
         double p = 0, q = 0;
-        for(int j = 1; j < N; j++)
+        for(int i = 0; i < _data.length(); i++)
         {
-            p += _data[j-1] * cos(2 * PI * i * j / N);
-            q += _data[j-1] * sin(2 * PI * i * j / N);
+            p += _data[i] * cos(2 * PI * i * fk);
+            q += _data[i] * sin(2 * PI * i * fk);
         }
         a.append(2.0 / N * p);
         b.append(2.0 / N * q);
     }
 
-    QVector<double> gramma;
+    //Чтобы выравнять 2 графика, а то здесь на 1 точку меньше
+    a.prepend(0);
+    b.prepend(0);
+
     for(int i=0; i<a.length(); i++)
-        gramma.append((pow(a[i],2) + pow(b[i],2)) * N / 2);
+        gramma.append(pow(a[i],2) + pow(b[i],2));
 
     return gramma;
 }
-
 
 void MainWindow::on_comboBox_currentIndexChanged(int index)
 {
