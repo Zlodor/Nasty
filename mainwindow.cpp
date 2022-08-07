@@ -108,22 +108,22 @@ QVector<double> MainWindow::process_data(QVector<double> _data)
     QVector<double> output;
     QVector<double> average;
 
-    for(int m=1; m<=(_data.length()/2); m++)
+    for(int m=1; m<=(_data.length()/2); m++) //Цикл от 1 до N/2
     {
-        average.clear();
-        int p = _data.length() / m;
-        double accumulator = 0.0;
-        for(int n=0; n<m; n++)
+        average.clear();                //Отчищаем массив под ср. знач. столбцов
+        int p = _data.length() / m;     //Расчитываем кол-во строк в матрице
+        double accumulator = 0.0;       //Здесь накапоивается ср.
+        for(int n=0; n<m; n++)          //Цикл по столбцам
         {
-            for(int i=0; i<p; i++)
-                accumulator+=_data[n+i*m];
+            for(int i=0; i<p; i++)      //Цикл по строкам
+                accumulator+=_data[n+i*m];  //Суммируем элементы столбцов
 
-            average.append(accumulator / p);
-            accumulator = 0;
+            average.append(accumulator / p);    //Добавляем в массив ср. знач. усреднённую сумму
+            accumulator = 0;                //Обнуляем накопитель
         }
-        double min = *std::min_element(average.begin(), average.end());
-        double max = *std::max_element(average.begin(), average.end());
-        output.append((max-min) / (2*p));
+        double min = *std::min_element(average.begin(), average.end()); //Находим min
+        double max = *std::max_element(average.begin(), average.end()); //Находим max
+        output.append((max-min) / (m*p));   //Добавляем точку на графике для отрезка длиной m
     }
     return output;
 }
@@ -204,7 +204,7 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
     this->raw_chart->removeAllSeries();
     this->raw_chart->addSeries(series);
     this->raw_chart->createDefaultAxes();
-    this->raw_chart->axes(Qt::Horizontal).back()->setRange(0, number_of_samples);
+    this->raw_chart->axes(Qt::Horizontal).back()->setRange(0+1, number_of_samples);
     this->ui->ChartView->repaint();
 }
 
@@ -245,7 +245,7 @@ void MainWindow::on_pushButton_2_clicked()
         (*first_alg)->append(i, this->output[i]);
     for(int i=0; i<this->gramma.length(); i++)
         (*secend_alg)->append(i, gramma[i]);
-    this->processed_chart->axes(Qt::Horizontal).back()->setRange(0, this->output.length());
+    this->processed_chart->axes(Qt::Horizontal).back()->setRange(0+1, this->output.length());
     this->ui->ChartView_2->repaint();
     this->on_checkBox_2_clicked();  //Для перерисовки оси Y
 }
