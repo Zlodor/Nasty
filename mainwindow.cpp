@@ -247,8 +247,8 @@ void MainWindow::on_pushButton_2_clicked()
         (*first_alg)->append(i, this->output[i]);
     for(int i=0; i<this->gramma.length(); i++){
         double t = static_cast<double>(tmp.length())/(i+1);
-//        (*secend_alg)->append(t, gramma[i]);
-        (*secend_alg)->append(i, gramma[i]);
+        (*secend_alg)->append(t, gramma[i]);
+//        (*secend_alg)->append(i, gramma[i]);
     }
     this->processed_chart->axes(Qt::Horizontal).back()->setRange(0+1, this->output.length());
     this->ui->ChartView_2->repaint();
