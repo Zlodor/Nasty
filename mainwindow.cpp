@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent)
     this->processed_chart->addSeries((*(processed_series.begin()+1)));
     this->processed_chart->createDefaultAxes();
 
+//    connect(this->ui->ChartView_2, &QtCharts::QChartView::mouseMoveEvent, this, [](QMouseEvent *e){qDebug()<<"YES";});
+
 }
 
 MainWindow::~MainWindow()
@@ -243,8 +245,11 @@ void MainWindow::on_pushButton_2_clicked()
 
     for(int i=0; i<this->output.length(); i++)
         (*first_alg)->append(i, this->output[i]);
-    for(int i=0; i<this->gramma.length(); i++)
+    for(int i=0; i<this->gramma.length(); i++){
+        double t = static_cast<double>(tmp.length())/(i+1);
+//        (*secend_alg)->append(t, gramma[i]);
         (*secend_alg)->append(i, gramma[i]);
+    }
     this->processed_chart->axes(Qt::Horizontal).back()->setRange(0+1, this->output.length());
     this->ui->ChartView_2->repaint();
     this->on_checkBox_2_clicked();  //Для перерисовки оси Y
@@ -269,7 +274,8 @@ void MainWindow::on_pushButton_3_clicked()
         //Чет мне кажется, что в грамм может быть на 1 значение больше. Перестрахуемся.
         int len = output.length() > gramma.length() ? gramma.length() : output.length();
         for(int i=0; i<len; i++)
-            stream<<QString::number(output[i])+ ","+ QString::number(gramma[i])<<endl;
+            stream<<QString::number(i+1) + ',' + QString::number(output[i]) + ','
+                    + QString::number(double(gramma.length()*2)/(i+1)) + ',' + QString::number(gramma[i])<<endl;
         out.close();
         qDebug()<<"Файл сохранён";
     }
