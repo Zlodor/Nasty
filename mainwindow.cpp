@@ -33,12 +33,18 @@ MainWindow::MainWindow(QWidget *parent)
     this->ui->spinBox_2->setEnabled(false);
     this->ui->pushButton_2->setEnabled(false);
 
+    this->ui->spinBox_3->setEnabled(false);
+    this->ui->spinBox_4->setEnabled(false);
+
     //Добавляем последовательности для каждого алгоритма обработки
     this->processed_series.append(new QLineSeries());
     this->processed_series.append(new QLineSeries());
     this->processed_chart->addSeries((*processed_series.begin()));
     this->processed_chart->addSeries((*(processed_series.begin()+1)));
     this->processed_chart->createDefaultAxes();
+
+
+
 
 //    connect(this->ui->ChartView_2, &QtCharts::QChartView::mouseMoveEvent, this, [](QMouseEvent *e){qDebug()<<"YES";});
 
@@ -127,42 +133,14 @@ QVector<double> MainWindow::process_data(QVector<double> _data)
         double max = *std::max_element(average.begin(), average.end()); //Находим max
         output.append((max-min) / (m*p));   //Добавляем точку на графике для отрезка длиной m
     }
+
+//    this->ui->spinBox_3->setEnabled(true);
+//    this->ui->spinBox_4->setEnabled(true);
+//    this->ui->spinBox_3->setMaximum(output.size());
+//    this->ui->spinBox_4->setMaximum(output.size());
+
     return output;
 }
-
-//QVector<double> MainWindow::period(QVector<double> _data)
-//{
-//    QVector<double> a, b;
-
-//    auto Mean = [](QVector<double> _inf)
-//    {
-//        double mean=0.0;
-//        for(auto &izm: _inf) mean+=izm;
-//        return mean/_inf.length();
-//    };
-//    a.append(Mean(_data));
-//    b.append(0.0);
-
-//    const int N = _data.length() / 2;
-//    const double PI = 3.1415;
-//    for(int i = 1; i <= N; i++)
-//    {
-//        double p = 0, q = 0;
-//        for(int j = 1; j <= N; j++)
-//        {
-//            p += _data[j-1] * cos(2 * PI * i * j / N);
-//            q += _data[j-1] * sin(2 * PI * i * j / N);
-//        }
-//        a.append(2.0 / N * p);
-//        b.append(2.0 / N * q);
-//    }
-
-//    QVector<double> gramma;
-//    for(int i=0; i<a.length(); i++)
-//        gramma.append((pow(a[i],2) + pow(b[i],2)) * N / 2);
-
-//    return gramma;
-//}
 
 
 QVector<double> MainWindow::period(QVector<double> _data)
@@ -192,6 +170,11 @@ QVector<double> MainWindow::period(QVector<double> _data)
     for(int i=0; i<a.length(); i++)
         gramma.append(pow(a[i],2) + pow(b[i],2));
 
+//    this->ui->spinBox_3->setEnabled(true);
+//    this->ui->spinBox_4->setEnabled(true);
+//    this->ui->spinBox_3->setMaximum(gramma.size());
+//    this->ui->spinBox_4->setMaximum(gramma.size());
+
     return gramma;
 }
 
@@ -211,6 +194,7 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
 }
 
 
+//Верхняя кнопка "Обработать"
 void MainWindow::on_pushButton_2_clicked()
 {
     int from = this->ui->spinBox->value();
@@ -245,7 +229,9 @@ void MainWindow::on_pushButton_2_clicked()
 
     for(int i=0; i<this->output.length(); i++)
         (*first_alg)->append(i, this->output[i]);
-    for(int i=0; i<this->gramma.length(); i++){
+
+    for(int i=0; i<this->gramma.length(); i++)
+    {
         double t = static_cast<double>(tmp.length())/(i+1);
         (*secend_alg)->append(t, gramma[i]);
 //        (*secend_alg)->append(i, gramma[i]);
@@ -253,6 +239,11 @@ void MainWindow::on_pushButton_2_clicked()
     this->processed_chart->axes(Qt::Horizontal).back()->setRange(0+1, this->output.length());
     this->ui->ChartView_2->repaint();
     this->on_checkBox_2_clicked();  //Для перерисовки оси Y
+
+    this->ui->spinBox_3->setEnabled(true);
+    this->ui->spinBox_4->setEnabled(true);
+    this->ui->spinBox_3->setMaximum(output.size());
+    this->ui->spinBox_4->setMaximum(output.size());
 }
 
 
@@ -393,5 +384,69 @@ void MainWindow::on_action1_triggered()
 {
     this->raw_chart->setTheme(QChart::ChartThemeQt);
     this->processed_chart->setTheme(QChart::ChartThemeQt);
+}
+
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    int from = this->ui->spinBox_3->value();
+    int to = this->ui->spinBox_4->value();
+    if(from >= to)
+    {
+        this->statusBar()->showMessage("Неверный промежуток", 3000);
+        return;
+    }
+
+    QVector<double> segment;        //Анализируемый отрезок
+    //Вырезаем нужный кусок
+    for(int i=from; i<=to; i++)
+        segment.push_back(this->gramma[i]);
+    int lenght = segment.size();     //Длина отрезка (кол-во элементов)
+
+    //Подсчитаем кол-во попаданий каждого значения в отрезок
+    std::map<double, int> counts;
+    for(const double& element : segment)
+    {
+        if(counts.find(element) == counts.end())
+            counts[element] = 1;
+        else
+            counts[element]++;
+    }
+    double M = 0.0;   //Мат. ожидание
+    for(const auto& it : counts)
+        M += it.first*it.second;
+    M/=lenght;
+
+
+    double D = 0.0;     //Дисперсия
+    double m3 = 0.0;    //Момент 3-го порядка
+    double m4 = 0.0;    //Момент 4-го порядка
+    for(const auto& it : counts)
+    {
+       double ver = (double)it.second/lenght;
+       D += pow((it.first - M),2) * ver;
+       m3 +=pow((it.first - M),3) * ver;
+       m4 +=pow((it.first - M),4) * ver;
+    }
+
+    double sko = sqrt(D);       //СКО
+    double A = m3/pow(sko,3);   //Коэф. асимметрии
+    double E = m4/pow(sko,4);   //Коэф. эксцесса
+
+    QString msg = "Мат. ожидание M = " + QString::number(M) +
+                    "\nДисперсия D = " + QString::number(D) +
+                    "\nСКО S = " + QString::number(sko) +
+                    "\nКоэф. асимметрии A = " + QString::number(A) +
+                    "\nКоэф. эксцесса E = " + QString::number(E);
+
+
+    QFont font;
+    font.setPointSizeF(12);
+    QMessageBox msgBox;
+    msgBox.setFont(font);
+    msgBox.setText(msg);
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
 }
 

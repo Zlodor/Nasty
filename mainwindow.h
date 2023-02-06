@@ -54,6 +54,8 @@ private slots:
 
     void on_action1_triggered();
 
+    void on_pushButton_4_clicked();
+
 private:
     Ui::MainWindow *ui;
 
